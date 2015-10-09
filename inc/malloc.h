@@ -6,7 +6,7 @@
 /*   By: slgracie <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/08 15:10:04 by slgracie          #+#    #+#             */
-/*   Updated: 2015/10/08 19:40:46 by slgracie         ###   ########.fr       */
+/*   Updated: 2015/10/09 17:43:21 by slgracie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 # include <sys/mman.h>
 # include <unistd.h>
 # include <stdio.h>
+# include "../libft/libft.h"
 
 # define TINY_SIZE (4 * getpagesize())
 # define TINY_MAX (128)
