@@ -1,17 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   malloc.h                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: slgracie <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2015/10/08 15:10:04 by slgracie          #+#    #+#             */
-/*   Updated: 2015/10/08 19:40:46 by slgracie         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef MALLOC_H
 # define MALLOC_H
+
 # include <sys/mman.h>
 # include <unistd.h>
 # include <stdio.h>
@@ -22,14 +11,16 @@
 # define SMALL_SIZE (26 * getpagesize())
 # define SMALL_MAX (1024)
 
-typedef struct 	s_block{
+typedef struct 	s_block
+{
 	int 		size;
 	struct 		s_block *prev;
 	struct 		s_block *next;
 	int 		free;
 }				t_block;
 
-typedef struct 	s_page{
+typedef struct 	s_page
+{
 	int 		size;
 	struct 		s_page *prev;
 	struct 		s_page *next;

@@ -1,25 +1,13 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   test.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: slgracie <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2015/10/05 14:05:08 by slgracie          #+#    #+#             */
-/*   Updated: 2015/10/08 20:00:50 by slgracie         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "./inc/malloc.h"
 
 int		init_lst_page(t_page **lst_page)
-{	
+{
 /* premier appel a malloc , initialisation des pages TINY et SMALL */
 
 	t_block	* first_b;
 	void	*tiny_page = NULL;
-	void	*small_page = NULL; 	
-	
+	void	*small_page = NULL;
+
 	tiny_page = mmap(0,TINY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON| MAP_PRIVATE,-1,0);
 	small_page = mmap(0,SMALL_SIZE, PROT_READ | PROT_WRITE, MAP_ANON| MAP_PRIVATE,-1,0);
 
@@ -48,7 +36,6 @@ void	*malloc(size_t size)
 		tmp = tmp->next;
 	}
 	return ptr;
-
 }
 
 int main()
@@ -57,5 +44,5 @@ int main()
 	size_t	size;
 
 	size =13;
-	ptr = (char *)malloc(size);	
+	ptr = (char *)malloc(size);
 }
