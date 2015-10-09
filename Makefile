@@ -27,7 +27,7 @@ C_WARN			=	"\033[33m"
 SUCCESS			=	$(C_GOOD)SUCCESS$(C_NO)
 OK				=	$(C_OK)OK$(C_NO)
 
-all: obj $(NAME) $(LN_NAME)
+all: obj $(NAME) cleanln $(LN_NAME)
 
 $(NAME): $(LIB) $(OBJS)
 	@$(CC) -o $@ $^ -L $(LIB_PATH) -lft
@@ -47,8 +47,7 @@ obj/%.o: src/%.c $(INC)/malloc.h
 	@echo "Linking" [ $< ] $(OK)
 
 cleanln:
-	@rm $(LN_NAME)
-	@echo "Cleaning" [ $(LN_NAME) ] "..." $(OK)
+	@rm -f $(LN_NAME)
 
 clean: cleanln
 	@rm -f $(OBJS)
