@@ -6,7 +6,7 @@
 /*   By: achirouz <achirouz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/02/02 16:20:29 by achirouz          #+#    #+#             */
-/*   Updated: 2015/10/08 19:42:34 by slgracie         ###   ########.fr       */
+/*   Updated: 2015/10/10 14:28:17 by slgracie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ t_page	*ft_lstnew_page(t_page *maillons, int size, t_block *first_block)
 		newlist->next = NULL;
 		newlist->prev = NULL;
 		newlist->size = size;
+		newlist->residual_size = size;
 		newlist->first_block = first_block;
 	}
 	return (newlist);

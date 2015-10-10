@@ -6,7 +6,7 @@
 /*   By: slgracie <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/08 15:10:04 by slgracie          #+#    #+#             */
-/*   Updated: 2015/10/09 17:43:21 by slgracie         ###   ########.fr       */
+/*   Updated: 2015/10/10 14:28:17 by slgracie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ typedef struct 	s_block{
 
 typedef struct 	s_page{
 	int 		size;
+	int			residual_size;// = size - nombre deblock + data-blacok
 	struct 		s_page *prev;
 	struct 		s_page *next;
 	t_block* 	first_block;
