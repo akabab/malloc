@@ -5,37 +5,62 @@
 # include <unistd.h>
 # include <stdio.h>
 
-# define TINY_SIZE (4 * getpagesize())
-# define TINY_MAX (128)
+# define TINY_QUANTUM			32
+# define TINY_BLOCK_MAX_SIZE	992
+# define TINY_REGION_SIZE		25 * 4096
+# define TINY_REGION_PAGES		25
 
-# define SMALL_SIZE (26 * getpagesize())
-# define SMALL_MAX (1024)
+// #if (TINY_REGION_SIZE <= (TINY_BLOCK_MAX_SIZE + 32) * 100)
+// # error "NO NO NO"
+// #endif
 
-typedef struct 	s_block
+# define SMALL_QUANTUM			1024
+# define SMALL_BLOCK_MAX_SIZE	15360
+# define SMALL_REGION_SIZE		400 * 4096
+# define SMALL_REGION_PAGES		400
+
+# define LARGE_QUANTUM			4096
+
+# define PAGE_SIZE				(getpagesize())
+
+typedef enum		e_region_type
 {
-	int 		size;
-	struct 		s_block *prev;
-	struct 		s_block *next;
-	int 		free;
-}				t_block;
+	TINY,
+	SMALL,
+	LARGE
+}					t_region_type;
 
-typedef struct 	s_page
+typedef enum		e_bool
 {
-	int 		size;
-	struct 		s_page *prev;
-	struct 		s_page *next;
-	t_block* 	first_block;
-}				t_page;
+	FALSE,
+	TRUE
+}					t_bool;
 
+typedef struct s_block_meta	t_block_meta;
+struct s_block_meta
+{
+	size_t				size;
+	t_block_meta		*prev;
+	t_block_meta		*next;
+	t_bool				free;
+};
 
-t_block	*ft_lstnew_block(t_block *maillons, int size, int free);
-void	ft_lstadd_block(t_block **alst, t_block *new);
-void	ft_lstdelone_block(t_block **alst, t_block **ptr);
-void	ft_to_null_block(t_block *list);
+typedef struct s_region		t_region;
+struct s_region
+{
+	t_region_type		type;
+	size_t				size;
+	t_region			*next;
+	//size_t			max_contiguous_free_space;
+	t_block_meta		*block_list;
+};
 
-t_page	*ft_lstnew_page(t_page *maillons, int size, t_block *first);
-void	ft_lstadd_page(t_page **alst, t_page *new);
-void	ft_lstdelone_page(t_page **alst, t_page **ptr);
-void	ft_to_null_page(t_page *list);
+# define BLOCK_META_SIZE		(sizeof(t_block_meta))
+
+void	free(void *ptr);
+void	*malloc(size_t size);
+void	*realloc(void *ptr, size_t size);
+
+void	show_alloc_mem(void);
 
 #endif
