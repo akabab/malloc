@@ -36,13 +36,13 @@ typedef enum		e_bool
 	TRUE
 }					t_bool;
 
-typedef struct s_block_meta	t_block_meta;
-struct s_block_meta
+typedef struct s_block	t_block;
+struct s_block
 {
 	size_t				size;
-	t_block_meta		*prev;
-	t_block_meta		*next;
-	t_bool				free;
+	t_block				*prev;
+	t_block				*next;
+	t_bool				is_free;
 };
 
 typedef struct s_region		t_region;
@@ -52,10 +52,11 @@ struct s_region
 	size_t				size;
 	t_region			*next;
 	//size_t			max_contiguous_free_space;
-	t_block_meta		*block_list;
+	t_block				*block_list;
 };
 
-# define BLOCK_META_SIZE		(sizeof(t_block_meta))
+# define REGION_META_SIZE		(sizeof(t_region))
+# define BLOCK_META_SIZE		(sizeof(t_block))
 
 void	free(void *ptr);
 void	*malloc(size_t size);
