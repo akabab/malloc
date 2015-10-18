@@ -217,7 +217,7 @@ void		*region_alloc(t_region *region, size_t size)
 		printf("no free block\n");
 		printf("NEW REG -----------------\n");
 		(get_last_region(region))->next = new_region(get_region_type(size), get_region_size(size));
-		region_alloc(region, size);
+		return region_alloc(region, size);
 	}
 	return (NULL);
 }
@@ -232,14 +232,14 @@ void		*malloc(size_t size)
 	if (region_list /* && region_list->max_contiguous_free_space >= size */)
 	{
 		printf("Yes REGION\n");
-		region_alloc(g_heap[region_type], size);
+		return region_alloc(g_heap[region_type], size);
 	}
 	else
 	{
 		printf("No REGION : %d\n", region_type);
 		// FIRST REGION
 		g_heap[region_type] = new_region(region_type, get_region_size(size));
-		region_alloc(g_heap[region_type], size);
+		return region_alloc(g_heap[region_type], size);
 	}
 	return (NULL);
 }
