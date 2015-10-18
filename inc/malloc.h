@@ -64,4 +64,20 @@ void	*realloc(void *ptr, size_t size);
 
 void	show_alloc_mem(void);
 
+/*
+**		COLOR
+*/
+# define RED			"31"
+# define GREEN			"32"
+# define YELLOW			"33"
+# define BLUE			"34"
+# define PINK			"35"
+# define GRBL			"36"
+# define GREY			"37"
+# define NO				"0"
+# define C(X)			"\033["X"m"
+# define CC(X)			"\033[3"X"m"
+# define CB(X)			"\x1B[48;1;"X"m"
+# define CBNO			"\x1B[0m"
+
 #endif
