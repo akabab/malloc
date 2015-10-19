@@ -109,33 +109,14 @@ t_block		*add_block_at(void *at, size_t size)
 	return (block);
 }
 
-t_region	*new_region(t_region_type type, t_region_size size)
+t_region	*get_last_region(t_region *region)
 {
-	int			prot;
-	int			flags;
-	t_region	*region;
+	t_region	*cur_region;
 
-	prot = PROT_READ | PROT_WRITE;
-	flags = MAP_ANON | MAP_PRIVATE;
-	region = mmap(0, size, prot, flags, -1, 0);
-	if (region == MAP_FAILED)
-	{
-		/* errno contains error */
-		return NULL;
-	}
-	region->type = type;
-	region->size = size - REGION_META_SIZE;
-	region->next = NULL;
-
-	printf("NEW REGION : %p\n", region);
-
-	// init first block
-	region->block_list = add_block_at((void *)region + REGION_META_SIZE, region->size - BLOCK_META_SIZE);
-	// printf("NEW Block : %p\n", region->block_list);
-	// DBG_sub_ptr(region->block_list, region, "region meta");
-;
-
-	return region;
+	cur_region = region;
+	while (cur_region && cur_region->next)
+		cur_region = cur_region->next;
+	return (cur_region);
 }
 
 t_block		*get_free_block(t_region *region, size_t size)
@@ -160,14 +141,62 @@ t_block		*get_free_block(t_region *region, size_t size)
 	return (NULL);
 }
 
-t_region	*get_last_region(t_region *region)
+void		split_block(t_block *b, size_t s)
 {
-	t_region	*cur_region;
+	t_block		*new_b;
 
-	cur_region = region;
-	while (cur_region->next)
-		cur_region = cur_region->next;
-	return (cur_region);
+	new_b = (t_block *)(b->data + BLOCK_SIZE + s);
+	new_b->size = b->size - s - BLOCK_SIZE;
+	new_b->next = b->next;
+	new_b->is_free = TRUE;
+	b->size = s;
+	b->next = new_b;
+}
+
+t_region	*new_region(t_region_type type, t_region_size size)
+{
+	t_region	*region;
+	int			prot;
+	int			flags;
+
+	prot = PROT_READ | PROT_WRITE;
+	flags = MAP_ANON | MAP_PRIVATE;
+	region = mmap(0, size, prot, flags, -1, 0);
+	if (region == MAP_FAILED)
+	{
+		/* errno contains error */
+		return (NULL);
+	}
+	region->type = type;
+	region->size = size - REGION_SIZE;
+	region->next = NULL;
+	region->block_list = NULL;
+	printf("NEW REGION : %p\n", region);
+	return (region);
+}
+
+t_block		*extend_region(t_region **region, size_t size)
+{
+	t_region	*new_r;
+	t_region	*last;
+	t_block		*new_b;
+
+	last = get_last_region(*region);
+	new_r = new_region(get_region_type(size), get_region_size(size));
+	if (!new_r)
+		return (NULL);
+	// Init first block of region
+	new_b = (t_block *)((void *)new_r + REGION_SIZE);
+	new_b->size = size; //new_r->size - BLOCK_SIZE;
+	new_b->prev = NULL;
+	new_b->next = NULL;
+	new_b->is_free = FALSE;
+	new_r->block_list = new_b;
+	if (last)
+		last->next = new_r;
+	else
+		*region = new_r;
+	return (new_b);
 }
 
 void		*region_alloc(t_region *region, size_t size)
@@ -176,70 +205,49 @@ void		*region_alloc(t_region *region, size_t size)
 	if (b)
 	{
 		printf("found free block: %p (%zu)\n", b, b->size);
-
 		// SPLIT
-
-		// create new free block right after IF enough space
-		// at (void *)b + BLOCK_META_SIZE + size
-		t_block *new_b = NULL;
-		if (b->size - size > BLOCK_META_SIZE)
+		if ((b->size - size) > BLOCK_SIZE)
 		{
-			printf("HERE -----------------\n");
-
-			new_b = (t_block *)((void *)b + BLOCK_META_SIZE + size);
-			new_b->size = b->size - size - BLOCK_META_SIZE;
-			new_b->prev = NULL; // b
-			new_b->next = NULL;
-			new_b->is_free = TRUE;
+			printf("SPLIT\n");
+			split_block(b, size);
 		}
 		else
 		{
-			// new region
-			printf("SPLIT :not enough space for new block\n");
-			printf("NEW REG -----------------\n");
-			(get_last_region(region))->next = new_region(get_region_type(size), get_region_size(size));
+			printf("SPLIT: not enough space for new block\n");
+			// b = extend_region(&region, size);
 		}
-
-		// ADD BLOCK
-		b->size = size;
-		b->prev = NULL;
-		b->next = NULL;
 		b->is_free = FALSE;
-
-		if (new_b)
-			b->next = new_b;
-
-		// return block address
-		return ((void *)b + BLOCK_META_SIZE);
+		return (b);
 	}
 	else
 	{
 		printf("no free block\n");
-		printf("NEW REG -----------------\n");
-		(get_last_region(region))->next = new_region(get_region_type(size), get_region_size(size));
-		return region_alloc(region, size);
+		b = extend_region(&region, size);
+		return (b);
 	}
 	return (NULL);
 }
 
 void		*malloc(size_t size)
 {
-	t_region	*region_list;
+	t_region	*region;
 	int			region_type;
+	t_block		*block;
 
 	region_type = get_region_type(size);
-	region_list = g_heap[region_type];
-	if (region_list /* && region_list->max_contiguous_free_space >= size */)
+	region = g_heap[region_type];
+	if (region)
 	{
-		printf("Yes REGION\n");
-		return region_alloc(g_heap[region_type], size);
+		block = region_alloc(region, size);
+		if (!block)
+			return (NULL);
 	}
 	else
 	{
-		printf("No REGION : %d\n", region_type);
-		// FIRST REGION
-		g_heap[region_type] = new_region(region_type, get_region_size(size));
-		return region_alloc(g_heap[region_type], size);
+		printf("FIRST REGION : %d\n", region_type);
+		block = extend_region(&g_heap[region_type], size);
+		if (!block)
+			return (NULL);
 	}
-	return (NULL);
+	return (block->data);
 }

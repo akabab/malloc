@@ -42,9 +42,10 @@ struct s_block
 	t_block				*prev;
 	t_block				*next;
 	t_bool				is_free;
+	char				data[1];
 };
 
-# define BLOCK_META_SIZE		(sizeof(t_block))
+# define BLOCK_SIZE		32 //(sizeof(t_block))
 
 /*
 ** REGION
@@ -61,14 +62,14 @@ typedef size_t		t_region_size;
 typedef struct s_region		t_region;
 struct s_region
 {
-	t_region_type		type;
+	t_region_type		type; //useless ?
 	t_region_size		size;
 	t_region			*next;
 	//size_t			max_contiguous_free_space;
 	t_block				*block_list;
 };
 
-# define REGION_META_SIZE		(sizeof(t_region))
+# define REGION_SIZE		(sizeof(t_region))
 
 void	free(void *ptr);
 void	*malloc(size_t size);

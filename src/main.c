@@ -15,5 +15,6 @@ int     main(int ac, char *av[])
         printf("\n");
         i++;
     }
+    // printf("BLOCK_SIZE = %lu\n", BLOCK_SIZE);
     return (0);
 }
