@@ -17,10 +17,14 @@ int     main(int ac, char *av[])
         printf("\n");
         i++;
     }
+    // addr[1] += 1;
     printf("---free---> %p\n", addr[1]);
     free(addr[1]);
     show_alloc_mem();
-
-    // printf("BLOCK_SIZE = %lu\n", sizeof(struct s_blocke));
+    void *tmp = malloc(10);
+    show_alloc_mem();
+    free(tmp);
+    show_alloc_mem();
+    // printf("BLOCK_SIZE = %lu\n", sizeof(t_block));
     return (0);
 }

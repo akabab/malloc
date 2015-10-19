@@ -1,6 +1,6 @@
 #include "malloc.h"
 
-t_region		*g_heap[3] = {NULL};//, NULL, NULL};
+t_region		*g_heap[3] = {NULL};
 int	g_test = 0;
 
 void		ft_putchar(const char c)
@@ -31,7 +31,7 @@ void		ft_putstr_fd(const char *str, int fd)
 	}
 }
 
-void	ft_putendl_fd(const char *s, int fd)
+void		ft_putendl_fd(const char *s, int fd)
 {
 	ft_putstr_fd(s, fd);
 	ft_putchar_fd('\n', fd);
@@ -49,6 +49,7 @@ void	ft_perror(const char *msg)
 	}
 	ft_putendl_fd(sys_errlist[errno], 2);
 }
+
 void		show_region_mem(t_region *region_list, char *type_str)
 {
 	t_region	*cur_region;
@@ -100,13 +101,58 @@ void		show_alloc_mem(void)
 	}
 }
 
+t_block		*get_block(void *ptr)
+{
+	char	*tmp;
+
+	tmp = ptr;
+	ptr = tmp - BLOCK_SIZE;
+	return (ptr);
+}
+
+t_bool		is_valid_addr(void *ptr)
+{
+	int			i;
+	t_region	*cur_r;
+	t_block		*b;
+	char		*tmp;
+
+	b = get_block(ptr);
+	tmp = (char *)b;
+	i = 0;
+	while (i < 3)
+	{
+		cur_r = g_heap[i];
+		while (cur_r)
+		{
+			if (tmp >= cur_r->data && tmp <= (cur_r->data + cur_r->size))
+			{
+				// printf("IS VALID ADDR: %d\n", b->ptr == ptr);
+				return (b->ptr == ptr);
+			}
+			cur_r = cur_r->next;
+		}
+		i++;
+	}
+	// printf("IS NOT VALID ADDR\n");
+	return (FALSE);
+}
+
 void		free(void *ptr)
 {
 	t_block		*block;
 
-	block = (t_block *)(ptr - BLOCK_SIZE);
-	printf("block %p - %zu bytes\n", block, block->size);
-	block->is_free = TRUE;
+	if (is_valid_addr(ptr))
+	{
+		block = get_block(ptr);
+		printf("block %p (%p) - %zu bytes\n", block, block->data, block->size);
+		block->is_free = TRUE;
+	}
+	else
+	{
+		printf("malloc: *** error for object %p: pointer being freed was not allocated\n", ptr);
+		exit(-1);
+	}
 	// if (munmap(addr, len) == -1)
 	// {
 	// 	ft_perror("munmap failed");
@@ -174,19 +220,30 @@ t_block		*get_free_block(t_region *region, size_t size)
 	return (NULL);
 }
 
-void		split_block(t_block *b, size_t s)
+t_block		*new_block(void *at, size_t size)
+{
+	t_block		*b;
+
+	b = (t_block *)at;
+	b->size = size;
+	b->prev = NULL;
+	b->next = NULL;
+	b->is_free = TRUE;
+	b->ptr = b->data;
+	return (b);
+}
+
+void		split_block(t_block *b, size_t size)
 {
 	t_block		*new_b;
 
-	new_b = (t_block *)(b->data + s);
-	new_b->size = b->size - s - BLOCK_SIZE;
+	new_b = new_block(b->data + size, b->size - size - BLOCK_SIZE);
 	new_b->next = b->next;
-	new_b->is_free = TRUE;
-	b->size = s;
+	b->size = size;
 	b->next = new_b;
 }
 
-t_region	*new_region(t_region_type type, t_region_size size)
+t_region	*new_region(t_region_size size)
 {
 	t_region	*region;
 	int			prot;
@@ -197,11 +254,9 @@ t_region	*new_region(t_region_type type, t_region_size size)
 	region = mmap(0, size, prot, flags, -1, 0);
 	if (region == MAP_FAILED)
 	{
-		/* errno contains error */
-		ft_perror("mmap failed");
+		ft_perror(NULL);
 		return (NULL);
 	}
-	region->type = type;
 	region->size = size - REGION_SIZE;
 	region->next = NULL;
 	region->block_list = NULL;
@@ -216,20 +271,18 @@ t_block		*extend_region(t_region **region, size_t size)
 	t_block		*new_b;
 
 	last = get_last_region(*region);
-	new_r = new_region(get_region_type(size), get_region_size(size));
+	new_r = new_region(get_region_size(size));
 	if (!new_r)
 		return (NULL);
 	// Init first block of region
-	new_b = (t_block *)((void *)new_r + REGION_SIZE);
-	new_b->prev = NULL;
-	new_b->next = NULL;
+	new_b = new_block((void *)new_r + REGION_SIZE, 0);
 	if (get_region_type(size) == LARGE)
 		new_b->size = size;
 	else
 	{
 		new_b->size = new_r->size - BLOCK_SIZE;
 		// alloc new block with size
-		if (new_b->size > size && (new_b->size - size) > BLOCK_SIZE)
+		if (new_b->size > size && (new_b->size - size) >= BLOCK_SIZE)
 			split_block(new_b, size);
 	}
 	new_b->is_free = FALSE;
@@ -248,15 +301,14 @@ void		*region_alloc(t_region *region, size_t size)
 	{
 		printf("found free block: %p (%zu)\n", b, b->size);
 		// SPLIT
-		if ((b->size - size) > BLOCK_SIZE)
+		if ((b->size - size) >= BLOCK_SIZE)
 		{
 			printf("SPLIT\n");
 			split_block(b, size);
 		}
 		else
 		{
-			printf("SPLIT: not enough space for new block\n");
-			// b = extend_region(&region, size);
+			printf("SPLIT: not enough space for new block so allocate whole block\n");
 		}
 		b->is_free = FALSE;
 		return (b);

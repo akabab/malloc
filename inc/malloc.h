@@ -4,6 +4,7 @@
 # include <sys/mman.h>
 # include <unistd.h>
 # include <stdio.h>
+# include <stdlib.h>
 
 # define PAGE_SIZE				(getpagesize())
 
@@ -38,14 +39,15 @@ typedef size_t		t_block_size;
 typedef struct s_block	t_block;
 struct s_block
 {
-	t_block_size		size;		// root +  0
-	t_block				*prev;		// root +  8
-	t_block				*next;		// root + 16
-	t_bool				is_free;	// root + 24
-	char				data[1];	// root + 28
+	t_block_size		size;
+	t_block				*prev;
+	t_block				*next;
+	t_bool				is_free;
+	void				*ptr;
+	char				data[1];
 };
 
-# define BLOCK_SIZE		28 //(sizeof(t_block))
+# define BLOCK_SIZE		5*8
 
 /*
 ** REGION
@@ -62,14 +64,13 @@ typedef size_t		t_region_size;
 typedef struct s_region		t_region;
 struct s_region
 {
-	t_region_type		type; //useless ?
 	t_region_size		size;
 	t_region			*next;
-	//size_t			max_contiguous_free_space;
 	t_block				*block_list;
+	char				data[1];
 };
 
-# define REGION_SIZE		(sizeof(t_region))
+# define REGION_SIZE	3*8
 
 void	free(void *ptr);
 void	*malloc(size_t size);
