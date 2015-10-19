@@ -38,14 +38,14 @@ typedef size_t		t_block_size;
 typedef struct s_block	t_block;
 struct s_block
 {
-	t_block_size		size;
-	t_block				*prev;
-	t_block				*next;
-	t_bool				is_free;
-	char				data[1];
+	t_block_size		size;		// root +  0
+	t_block				*prev;		// root +  8
+	t_block				*next;		// root + 16
+	t_bool				is_free;	// root + 24
+	char				data[1];	// root + 28
 };
 
-# define BLOCK_SIZE		32 //(sizeof(t_block))
+# define BLOCK_SIZE		28 //(sizeof(t_block))
 
 /*
 ** REGION

@@ -5,16 +5,22 @@
 int     main(int ac, char *av[])
 {
     int     i;
+    void    *addr[ac];
 
     i = 1;
     while (i < ac)
     {
         printf("---malloc(%s)---\n", av[i]);
-        malloc(atoi(av[i]));
+        addr[i] = malloc(atoi(av[i]));
+        printf("---malloc(%s)---> %p\n", av[i], addr[i]);
         show_alloc_mem();
         printf("\n");
         i++;
     }
-    // printf("BLOCK_SIZE = %lu\n", BLOCK_SIZE);
+    printf("---free---> %p\n", addr[1]);
+    free(addr[1]);
+    show_alloc_mem();
+
+    // printf("BLOCK_SIZE = %lu\n", sizeof(struct s_blocke));
     return (0);
 }

@@ -3,12 +3,12 @@
 t_region		*g_heap[3] = {NULL};//, NULL, NULL};
 int	g_test = 0;
 
-void		ft_putchar(char c)
+void		ft_putchar(const char c)
 {
 	write(1, &c, 1);
 }
 
-void		ft_putstr(char *str)
+void		ft_putstr(const char *str)
 {
 	while (*str)
 	{
@@ -17,6 +17,38 @@ void		ft_putstr(char *str)
 	}
 }
 
+void		ft_putchar_fd(const char c, int fd)
+{
+	write(fd, &c, 1);
+}
+
+void		ft_putstr_fd(const char *str, int fd)
+{
+	while (*str)
+	{
+		ft_putchar_fd(*str, fd);
+		str++;
+	}
+}
+
+void	ft_putendl_fd(const char *s, int fd)
+{
+	ft_putstr_fd(s, fd);
+	ft_putchar_fd('\n', fd);
+}
+
+void	ft_perror(const char *msg)
+{
+	extern const int			errno;
+	extern const char	* const sys_errlist[];
+
+	if (msg)
+	{
+		ft_putstr_fd(msg, 2);
+		ft_putstr_fd(": ", 2);
+	}
+	ft_putendl_fd(sys_errlist[errno], 2);
+}
 void		show_region_mem(t_region *region_list, char *type_str)
 {
 	t_region	*cur_region;
@@ -37,7 +69,7 @@ void		show_region_mem(t_region *region_list, char *type_str)
 			else
 				printf(C(RED));
 			printf("===============\n");
-			printf(" %p - %zu bytes\n", cur_block, cur_block->size);
+			printf(" %p (%p) - %zu bytes\n", cur_block, cur_block->data, cur_block->size);
 			printf("===============\n"C(NO));
 			if (!cur_block->is_free)
 				total_bytes += cur_block->size;
@@ -68,7 +100,20 @@ void		show_alloc_mem(void)
 	}
 }
 
-void		free(void *ptr);
+void		free(void *ptr)
+{
+	t_block		*block;
+
+	block = (t_block *)(ptr - BLOCK_SIZE);
+	printf("block %p - %zu bytes\n", block, block->size);
+	block->is_free = TRUE;
+	// if (munmap(addr, len) == -1)
+	// {
+	// 	ft_perror("munmap failed");
+	// 	return ;
+	// }
+}
+
 void		*realloc(void *ptr, size_t size);
 
 int			get_region_type(size_t size)
@@ -95,18 +140,6 @@ void		DBG_sub_ptr(void *ptr1, void *ptr2, char *msg)
 	if (msg)
 		printf("%s : ", msg);
 	printf("%ld bytes\n", ptr1 - ptr2);
-}
-
-t_block		*add_block_at(void *at, size_t size)
-{
-	t_block		*block;
-
-	block = (t_block *)at;
-	block->size = size;
-	block->prev = NULL;
-	block->next = NULL;
-	block->is_free = TRUE;
-	return (block);
 }
 
 t_region	*get_last_region(t_region *region)
@@ -145,7 +178,7 @@ void		split_block(t_block *b, size_t s)
 {
 	t_block		*new_b;
 
-	new_b = (t_block *)((void *)b + BLOCK_SIZE + s);
+	new_b = (t_block *)(b->data + s);
 	new_b->size = b->size - s - BLOCK_SIZE;
 	new_b->next = b->next;
 	new_b->is_free = TRUE;
@@ -165,6 +198,7 @@ t_region	*new_region(t_region_type type, t_region_size size)
 	if (region == MAP_FAILED)
 	{
 		/* errno contains error */
+		ft_perror("mmap failed");
 		return (NULL);
 	}
 	region->type = type;
@@ -187,13 +221,17 @@ t_block		*extend_region(t_region **region, size_t size)
 		return (NULL);
 	// Init first block of region
 	new_b = (t_block *)((void *)new_r + REGION_SIZE);
-	new_b->size = new_r->size - BLOCK_SIZE;
 	new_b->prev = NULL;
 	new_b->next = NULL;
-	new_b->is_free = TRUE;
-	// alloc new block with size
-	if (new_b->size > size && (new_b->size - size) > BLOCK_SIZE)
-		split_block(new_b, size);
+	if (get_region_type(size) == LARGE)
+		new_b->size = size;
+	else
+	{
+		new_b->size = new_r->size - BLOCK_SIZE;
+		// alloc new block with size
+		if (new_b->size > size && (new_b->size - size) > BLOCK_SIZE)
+			split_block(new_b, size);
+	}
 	new_b->is_free = FALSE;
 	new_r->block_list = new_b;
 	if (last)
