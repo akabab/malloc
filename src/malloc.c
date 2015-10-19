@@ -43,7 +43,7 @@ void		show_region_mem(t_region *region_list, char *type_str)
 				total_bytes += cur_block->size;
 			cur_block = cur_block->next;
 		}
-		printf(CB(BLUE)"...> %p <....................\n"C(NO), cur_region);
+		printf(CB(BLUE)"...> %p <....................\n"C(NO), (void *)cur_region + REGION_SIZE + cur_region->size);
 		cur_region = cur_region->next;
 	}
 	printf(C(YELLOW)"%s"C(NO)" - %zu bytes\n", type_str, total_bytes); // ft_
@@ -145,7 +145,7 @@ void		split_block(t_block *b, size_t s)
 {
 	t_block		*new_b;
 
-	new_b = (t_block *)(b->data + BLOCK_SIZE + s);
+	new_b = (t_block *)((void *)b + BLOCK_SIZE + s);
 	new_b->size = b->size - s - BLOCK_SIZE;
 	new_b->next = b->next;
 	new_b->is_free = TRUE;
@@ -171,7 +171,7 @@ t_region	*new_region(t_region_type type, t_region_size size)
 	region->size = size - REGION_SIZE;
 	region->next = NULL;
 	region->block_list = NULL;
-	printf("NEW REGION : %p\n", region);
+	printf("NEW REGION : [%p-%p] - %zu bytes\n", region, (void *)region + size, region->size);
 	return (region);
 }
 
@@ -187,9 +187,13 @@ t_block		*extend_region(t_region **region, size_t size)
 		return (NULL);
 	// Init first block of region
 	new_b = (t_block *)((void *)new_r + REGION_SIZE);
-	new_b->size = size; //new_r->size - BLOCK_SIZE;
+	new_b->size = new_r->size - BLOCK_SIZE;
 	new_b->prev = NULL;
 	new_b->next = NULL;
+	new_b->is_free = TRUE;
+	// alloc new block with size
+	if (new_b->size > size && (new_b->size - size) > BLOCK_SIZE)
+		split_block(new_b, size);
 	new_b->is_free = FALSE;
 	new_r->block_list = new_b;
 	if (last)
