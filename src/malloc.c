@@ -154,7 +154,7 @@ t_block		*fusion_block_with_next(t_block *b)
 	return (b);
 }
 
-void		unmap_region(t_region *r)
+void		free_region(t_region *r)
 {
 	if (r->prev)
 		r->prev->next = r->next;
@@ -166,6 +166,8 @@ void		unmap_region(t_region *r)
 		g_heap[r->type] = NULL;
 	if (munmap(r, r->size + REGION_SIZE) == -1)
 		return ft_perror("munmap error");
+	else
+		printf("UNMAPED region: %p\n", r);
 }
 
 void		free(void *ptr)
@@ -187,7 +189,10 @@ void		free(void *ptr)
 		if (!b->next && !b->prev)
 		{
 			printf("LAST BLOCK\n");
-			unmap_region(r);
+			if (r->type == LARGE || (r->prev || r->next))
+				free_region(r);
+			else
+				printf("last region - keep it\n");
 		}
 	}
 	else
