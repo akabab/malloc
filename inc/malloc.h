@@ -89,6 +89,7 @@ void		show_alloc_mem(void);
 **		ft_perror.c
 */
 void		ft_perror(const char *msg);
+void		malloc_err(const char *msg, void *ptr);
 
 /*
 **		ft_puts.c
@@ -98,6 +99,18 @@ void		ft_putstr(const char *str);
 void		ft_putchar_fd(const char c, int fd);
 void		ft_putstr_fd(const char *str, int fd);
 void		ft_putendl_fd(const char *s, int fd);
+
+/*
+**		ft_puts_plus.c
+*/
+void		ft_putnbr(int n);
+size_t		ft_strlen(char *s);
+
+
+/*
+**		ft_printf.c
+*/
+int			ft_printf(const char *format, ...);
 
 /*
 **		region_utils.c

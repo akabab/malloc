@@ -1,4 +1,4 @@
-CC				=	cc -g -O2 $(FLAGS)
+CC				=	cc -O2 $(FLAGS)
 FLAGS			=	-Wall -Wextra -Werror
 
 ifeq ($(HOSTTYPE),)
@@ -8,11 +8,16 @@ endif
 NAME			=	libft_malloc_$(HOSTTYPE).so
 LN_NAME			=	libft_malloc.so
 
-LIB				=	libft/libft.a
-LIB_PATH		=	libft/
-
 INC				=	inc
-SRCS			=	src/malloc.c
+SRCS			=	src/ft_perror.c				\
+					src/ft_printf.c				\
+					src/ft_puts.c				\
+					src/ft_puts_plus.c			\
+					src/region_utils.c			\
+					src/region_utils_plus.c		\
+					src/block_utils.c			\
+					src/show_alloc.c			\
+					src/malloc.c
 
 OBJS			=	$(SRCS:src/%.c=obj/%.o)
 
@@ -29,21 +34,18 @@ OK				=	$(C_OK)OK$(C_NO)
 
 all: obj $(NAME) cleanln $(LN_NAME)
 
-$(NAME): $(LIB) $(OBJS)
-	@$(CC) -o $@ $^ -L $(LIB_PATH) -lft
+$(NAME): $(OBJS)
+	@$(CC) -shared -o $@ $^
 	@echo "Compiling" [ $(NAME) ] $(SUCCESS)
 
 $(LN_NAME):
 	@ln -s $(NAME) $@
 
-$(LIB):
-	@make -C $(LIB_PATH)
-
 obj:
 	@mkdir -p obj
 
 obj/%.o: src/%.c $(INC)/malloc.h
-	@$(CC) -o $@ -c $< -I $(LIB_PATH)includes -I $(INC)
+	@$(CC) -o $@ -c $< -I $(INC)
 	@echo "Linking" [ $< ] $(OK)
 
 cleanln:
@@ -56,7 +58,6 @@ clean: cleanln
 
 fclean: clean
 	@rm -f $(NAME)
-	@make -C $(LIB_PATH) fclean
 	@echo "Delete" [ $(NAME) ] $(OK)
 
 re: fclean all

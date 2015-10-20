@@ -17,8 +17,17 @@ void    free_prev(void)
     show_alloc_mem();
 }
 
+void    free_wrong_addr(void)
+{
+    void    *ptr;
+
+    ptr = malloc(100);
+    free(ptr+1);
+}
+
 int     main(int ac, char *av[])
 {
     free_prev();
+    // free_wrong_addr();
     return (0);
 }

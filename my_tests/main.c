@@ -24,22 +24,10 @@ int     main(int ac, char *av[])
     i = 1;
     while (i < ac)
     {
-        printf("---malloc(%s)---\n", av[i]);
         addr[i] = malloc(atoi(av[i]));
-        printf("---malloc(%s)---> %p\n", av[i], addr[i]);
-        show_alloc_mem();
-        printf("\n");
+        // show_alloc_mem();
         i++;
     }
-    // addr[1] += 1;
-    printf("---free---> %p\n", addr[1]);
-    free(addr[1]);
-    free(addr[2]);
     show_alloc_mem();
-    void *tmp = malloc(10);
-    show_alloc_mem();
-    free(tmp);
-    show_alloc_mem();
-    // printf("BLOCK_SIZE = %lu\n", sizeof(t_block));
     return (0);
 }

@@ -25,7 +25,7 @@ void		free(void *ptr)
 	}
 	else
 	{
-		printf("malloc: *** error for object %p: pointer being freed was not allocated\n", ptr);
+		malloc_err("pointer being freed was not allocated", ptr);
 		exit(-1);
 	}
 }
@@ -77,7 +77,7 @@ void		*realloc(void *ptr, size_t size)
 		return handle_realloc(ptr, size);
 	else
 	{
-		printf("malloc: *** error for object %p: pointer being realloc'd was not allocated\n", ptr);
+		malloc_err("pointer being realloc'd was not allocated", ptr);
 		exit(-1);
 	}
 	return (NULL);
