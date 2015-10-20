@@ -154,6 +154,20 @@ t_block		*fusion_block_with_next(t_block *b)
 	return (b);
 }
 
+void		unmap_region(t_region *r)
+{
+	if (r->prev)
+		r->prev->next = r->next;
+	else
+		g_heap[r->type] = r->next;
+	if (r->next)
+		r->next->prev = r->prev;
+	else if (!r->prev)
+		g_heap[r->type] = NULL;
+	if (munmap(r, r->size + REGION_SIZE) == -1)
+		return ft_perror("munmap error");
+}
+
 void		free(void *ptr)
 {
 	t_block		*b;
@@ -167,49 +181,13 @@ void		free(void *ptr)
 		printf("block %p (%p) - %zu bytes\n", b, b->data, b->size);
 		b->is_free = TRUE;
 		if (b->prev && b->prev->is_free)
-		{
-			printf("fusion with prev\n");
 			b = fusion_block_with_next(b->prev);
-		}
-		if (b->next)
-		{
-			if (b->next->is_free)
-				printf("fusion with next\n");
+		if (b->next && b->next->is_free)
 			fusion_block_with_next(b);
-		}
-		else
+		if (!b->next && !b->prev)
 		{
-			if (!b->prev)
-			{
-				printf("NO PREV\n");
-				// last block on region -> unmap region
-				if (r->prev)
-				{
-					r->prev->next = r->next;
-				}
-				else
-				{
-					g_heap[r->type] = r->next;
-				}
-				if (r->next)
-				{
-					r->next->prev = r->prev;
-				}
-				else
-				{
-					if (!r->prev)
-						g_heap[r->type] = NULL;
-				}
-				if (munmap(r, r->size + REGION_SIZE) == -1)
-				{
-					ft_perror("munmap failed");
-					return ;
-				}
-				else
-				{
-					printf("region unmapped: %p\n", r);
-				}
-			}
+			printf("LAST BLOCK\n");
+			unmap_region(r);
 		}
 	}
 	else
@@ -314,7 +292,7 @@ t_region	*new_region(t_region_type type, t_region_size size)
 	region = mmap(0, size, prot, flags, -1, 0);
 	if (region == MAP_FAILED)
 	{
-		ft_perror(NULL);
+		ft_perror("mmap error");
 		return (NULL);
 	}
 	region->size = size - REGION_SIZE;
