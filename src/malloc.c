@@ -202,7 +202,6 @@ void		free(void *ptr)
 	}
 }
 
-void		*realloc(void *ptr, size_t size);
 
 int			get_region_type(size_t size)
 {
@@ -284,6 +283,8 @@ void		split_block(t_block *b, size_t size)
 	new_b->next = b->next;
 	b->size = size;
 	b->next = new_b;
+	if (new_b->next)
+		new_b->next->prev = new_b;
 }
 
 t_region	*new_region(t_region_type type, t_region_size size)
@@ -364,6 +365,80 @@ void		*region_alloc(t_region *region, size_t size)
 		printf("no free block -> extend_region\n");
 		b = extend_region(&region, size);
 		return (b);
+	}
+	return (NULL);
+}
+
+void		copy_data(t_block *src, t_block *dst)
+{
+	char	*src_data;
+	char	*dst_data;
+	int		i;
+
+	src_data = src->data;
+	dst_data = dst->data;
+	i = 0;
+	while (i < src->size && i < dst->size)
+	{
+		dst_data[i] = src_data[i];
+		i++;
+	}
+}
+
+void		*realloc(void *ptr, size_t size)
+{
+	t_block		*b;
+	t_region	*r;
+	void		*new_p;
+	t_block		*new_b;
+
+	if (!ptr)
+		return (malloc(size));
+	if ((r = get_valid_region(ptr)) != NULL)
+	{
+		printf("realloc\n");
+		b = get_block(ptr);
+		if (b->size >= size)
+		{
+			printf("Original bigger than dest\n");
+			if ((b->size - size) >= BLOCK_SIZE)
+			{
+				printf("SPLIT\n");
+				split_block(b, size);
+			}
+		}
+		else
+		{
+			// try fusion with next
+			if (b->next && b->next->is_free
+				&& (b->size + BLOCK_SIZE + b->next->size) >= size)
+			{
+				printf("FUSION\n");
+				fusion_block_with_next(b);
+				if (b->size - size >= BLOCK_SIZE)
+				{
+					printf("SPLIT\n");
+					split_block(b, size);
+				}
+			}
+			else
+			{
+				printf("COPY\n");
+				new_p = malloc(size);
+				if (!new_p)
+					return (NULL);
+				new_b = get_block(new_p);
+				copy_data(b, new_b);
+				free(ptr);
+				return (new_p);
+			}
+		}
+		return (ptr);
+	}
+	else
+	{
+		printf("malloc: *** error for object %p: pointer being realloc'd was not allocated\n", ptr);
+		exit(-1);
 	}
 	return (NULL);
 }
