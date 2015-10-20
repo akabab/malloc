@@ -54,9 +54,11 @@ void		show_region_mem(t_region *region_list, char *type_str)
 {
 	t_region	*cur_region;
 	t_block		*cur_block;
+	size_t		total_regions;
 	size_t		total_bytes;
 
 	total_bytes = 0;
+	total_regions = 0;
 	cur_region = region_list;
 	printf(C(YELLOW)"%s"C(NO)" : %p\n", type_str, cur_region); // ft_
 	while (cur_region)
@@ -76,10 +78,11 @@ void		show_region_mem(t_region *region_list, char *type_str)
 				total_bytes += cur_block->size;
 			cur_block = cur_block->next;
 		}
-		printf(CB(BLUE)"...> %p <....................\n"C(NO), (void *)cur_region + REGION_SIZE + cur_region->size);
+		printf(CB(BLUE)"...> %p <....................\n"C(NO), cur_region->data + REGION_SIZE + cur_region->size);
+		total_regions++;
 		cur_region = cur_region->next;
 	}
-	printf(C(YELLOW)"%s"C(NO)" - %zu bytes\n", type_str, total_bytes); // ft_
+	printf(C(YELLOW)"%s"C(NO)" - %zu bytes (%zu regions)\n", type_str, total_bytes, total_regions); // ft_
 }
 
 void		show_alloc_mem(void)
@@ -260,7 +263,7 @@ t_region	*new_region(t_region_size size)
 	region->size = size - REGION_SIZE;
 	region->next = NULL;
 	region->block_list = NULL;
-	printf("NEW REGION : [%p-%p] - %zu bytes\n", region, (void *)region + size, region->size);
+	printf("NEW REGION : [%p-%p] - %zu bytes\n", region, region->data + size, region->size);
 	return (region);
 }
 
@@ -275,7 +278,7 @@ t_block		*extend_region(t_region **region, size_t size)
 	if (!new_r)
 		return (NULL);
 	// Init first block of region
-	new_b = new_block((void *)new_r + REGION_SIZE, 0);
+	new_b = new_block(new_r->data + REGION_SIZE, 0);
 	if (get_region_type(size) == LARGE)
 		new_b->size = size;
 	else
@@ -299,11 +302,11 @@ void		*region_alloc(t_region *region, size_t size)
 	t_block *b = get_free_block(region, size);
 	if (b)
 	{
-		printf("found free block: %p (%zu)\n", b, b->size);
+		// printf("found free block: %p (%zu)\n", b, b->size);
 		// SPLIT
 		if ((b->size - size) >= BLOCK_SIZE)
 		{
-			printf("SPLIT\n");
+			// printf("SPLIT\n");
 			split_block(b, size);
 		}
 		else
@@ -315,7 +318,7 @@ void		*region_alloc(t_region *region, size_t size)
 	}
 	else
 	{
-		printf("no free block\n");
+		printf("no free block -> extend_region\n");
 		b = extend_region(&region, size);
 		return (b);
 	}
