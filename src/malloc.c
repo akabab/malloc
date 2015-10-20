@@ -78,7 +78,7 @@ void		show_region_mem(t_region *region_list, char *type_str)
 				total_bytes += cur_block->size;
 			cur_block = cur_block->next;
 		}
-		printf(CB(BLUE)"...> %p <....................\n"C(NO), cur_region->data + REGION_SIZE + cur_region->size);
+		printf(CB(BLUE)"...> %p <....................\n"C(NO), cur_region->data + cur_region->size);
 		total_regions++;
 		cur_region = cur_region->next;
 	}
@@ -145,6 +145,8 @@ void		free(void *ptr)
 {
 	t_block		*block;
 
+	if (!ptr)
+		return ;
 	if (is_valid_addr(ptr))
 	{
 		block = get_block(ptr);
@@ -278,7 +280,7 @@ t_block		*extend_region(t_region **region, size_t size)
 	if (!new_r)
 		return (NULL);
 	// Init first block of region
-	new_b = new_block(new_r->data + REGION_SIZE, 0);
+	new_b = new_block(new_r->data, 0);
 	if (get_region_type(size) == LARGE)
 		new_b->size = size;
 	else
