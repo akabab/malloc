@@ -24,7 +24,6 @@
 
 # define LARGE_QUANTUM			PAGE_SIZE
 
-
 typedef enum		e_bool
 {
 	FALSE,
@@ -74,11 +73,58 @@ struct s_region
 
 # define REGION_SIZE	4*8
 
-void	free(void *ptr);
-void	*malloc(size_t size);
-void	*realloc(void *ptr, size_t size);
+/*
+**		malloc.c
+*/
+void		free(void *ptr);
+void		*malloc(size_t size);
+void		*realloc(void *ptr, size_t size);
 
-void	show_alloc_mem(void);
+/*
+**		show_alloc.c
+*/
+void		show_alloc_mem(void);
+
+/*
+**		ft_perror.c
+*/
+void		ft_perror(const char *msg);
+
+/*
+**		ft_puts.c
+*/
+void		ft_putchar(const char c);
+void		ft_putstr(const char *str);
+void		ft_putchar_fd(const char c, int fd);
+void		ft_putstr_fd(const char *str, int fd);
+void		ft_putendl_fd(const char *s, int fd);
+
+/*
+**		region_utils.c
+*/
+int			get_region_type(size_t size);
+size_t		get_region_size(size_t size);
+t_region	*get_last_region(t_region *region);
+t_block		*extend_region(t_region **region, size_t size);
+t_region	*new_region(t_region_type type, t_region_size size);
+
+/*
+**		region_utils_plus.c
+*/
+void		free_region(t_region *r);
+t_block		*get_free_block(t_region *region, size_t size);
+t_region	*get_valid_region(void *ptr);
+void		*region_alloc(t_region *region, size_t size);
+
+/*
+**		block_utils.c
+*/
+t_block		*get_block(void *ptr);
+void		copy_data(t_block *src, t_block *dst);
+t_block		*fusion_block(t_block *b);
+void		split_block(t_block *b, size_t size);
+t_block		*new_block(void *at, size_t size);
+
 
 /*
 **		COLOR
