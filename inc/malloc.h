@@ -65,12 +65,14 @@ typedef struct s_region		t_region;
 struct s_region
 {
 	t_region_size		size;
+	t_region_type		type;
+	t_region			*prev;
 	t_region			*next;
 	t_block				*block_list;
 	char				data[1];
 };
 
-# define REGION_SIZE	3*8
+# define REGION_SIZE	4*8
 
 void	free(void *ptr);
 void	*malloc(size_t size);

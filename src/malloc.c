@@ -113,7 +113,7 @@ t_block		*get_block(void *ptr)
 	return (ptr);
 }
 
-t_bool		is_valid_addr(void *ptr)
+t_region	*get_valid_region(void *ptr)
 {
 	int			i;
 	t_region	*cur_r;
@@ -131,38 +131,92 @@ t_bool		is_valid_addr(void *ptr)
 			if (tmp >= cur_r->data && tmp <= (cur_r->data + cur_r->size))
 			{
 				// printf("IS VALID ADDR: %d\n", b->ptr == ptr);
-				return (b->ptr == ptr);
+				if (b->ptr == ptr)
+					return (cur_r);
 			}
 			cur_r = cur_r->next;
 		}
 		i++;
 	}
 	// printf("IS NOT VALID ADDR\n");
-	return (FALSE);
+	return (NULL);
+}
+
+t_block		*fusion_block_with_next(t_block *b)
+{
+	if (b->next && b->next->is_free)
+	{
+		b->size += BLOCK_SIZE + b->next->size;
+		b->next = b->next->next;
+		if (b->next)
+			b->next->prev = b;
+	}
+	return (b);
 }
 
 void		free(void *ptr)
 {
-	t_block		*block;
+	t_block		*b;
+	t_region	*r;
 
 	if (!ptr)
 		return ;
-	if (is_valid_addr(ptr))
+	if ((r = get_valid_region(ptr)) != NULL)
 	{
-		block = get_block(ptr);
-		printf("block %p (%p) - %zu bytes\n", block, block->data, block->size);
-		block->is_free = TRUE;
+		b = get_block(ptr);
+		printf("block %p (%p) - %zu bytes\n", b, b->data, b->size);
+		b->is_free = TRUE;
+		if (b->prev && b->prev->is_free)
+		{
+			printf("fusion with prev\n");
+			b = fusion_block_with_next(b->prev);
+		}
+		if (b->next)
+		{
+			if (b->next->is_free)
+				printf("fusion with next\n");
+			fusion_block_with_next(b);
+		}
+		else
+		{
+			if (!b->prev)
+			{
+				printf("NO PREV\n");
+				// last block on region -> unmap region
+				if (r->prev)
+				{
+					r->prev->next = r->next;
+				}
+				else
+				{
+					g_heap[r->type] = r->next;
+				}
+				if (r->next)
+				{
+					r->next->prev = r->prev;
+				}
+				else
+				{
+					if (!r->prev)
+						g_heap[r->type] = NULL;
+				}
+				if (munmap(r, r->size + REGION_SIZE) == -1)
+				{
+					ft_perror("munmap failed");
+					return ;
+				}
+				else
+				{
+					printf("region unmapped: %p\n", r);
+				}
+			}
+		}
 	}
 	else
 	{
 		printf("malloc: *** error for object %p: pointer being freed was not allocated\n", ptr);
 		exit(-1);
 	}
-	// if (munmap(addr, len) == -1)
-	// {
-	// 	ft_perror("munmap failed");
-	// 	return ;
-	// }
 }
 
 void		*realloc(void *ptr, size_t size);
@@ -243,12 +297,13 @@ void		split_block(t_block *b, size_t size)
 	t_block		*new_b;
 
 	new_b = new_block(b->data + size, b->size - size - BLOCK_SIZE);
+	new_b->prev = b;
 	new_b->next = b->next;
 	b->size = size;
 	b->next = new_b;
 }
 
-t_region	*new_region(t_region_size size)
+t_region	*new_region(t_region_type type, t_region_size size)
 {
 	t_region	*region;
 	int			prot;
@@ -263,6 +318,8 @@ t_region	*new_region(t_region_size size)
 		return (NULL);
 	}
 	region->size = size - REGION_SIZE;
+	region->type = type;
+	region->prev = NULL;
 	region->next = NULL;
 	region->block_list = NULL;
 	printf("NEW REGION : [%p-%p] - %zu bytes\n", region, region->data + size, region->size);
@@ -276,7 +333,7 @@ t_block		*extend_region(t_region **region, size_t size)
 	t_block		*new_b;
 
 	last = get_last_region(*region);
-	new_r = new_region(get_region_size(size));
+	new_r = new_region(get_region_type(size), get_region_size(size));
 	if (!new_r)
 		return (NULL);
 	// Init first block of region
@@ -292,6 +349,7 @@ t_block		*extend_region(t_region **region, size_t size)
 	}
 	new_b->is_free = FALSE;
 	new_r->block_list = new_b;
+	new_r->prev = last;
 	if (last)
 		last->next = new_r;
 	else
@@ -301,7 +359,7 @@ t_block		*extend_region(t_region **region, size_t size)
 
 void		*region_alloc(t_region *region, size_t size)
 {
-	t_block *b = get_free_block(region, size);
+	t_block *b = get_free_block(region, size); //optim with t_block **last
 	if (b)
 	{
 		// printf("found free block: %p (%zu)\n", b, b->size);
