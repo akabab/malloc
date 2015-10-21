@@ -70,7 +70,9 @@ t_region	*get_valid_region(void *ptr)
 
 void		*region_alloc(t_region *region, size_t size)
 {
-	t_block *b = get_free_block(region, size);
+	t_block		*b;
+
+	b = get_free_block(region, size);
 	if (b)
 	{
 		if ((b->size - size) >= BLOCK_SIZE)

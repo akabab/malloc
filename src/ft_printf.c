@@ -57,7 +57,7 @@ static int		print_arg(const char **format, va_list *arg)
 	return (1);
 }
 
-int			ft_printf(const char *format, ...)
+int				ft_printf(const char *format, ...)
 {
 	va_list		arg;
 	int			i;

@@ -25,7 +25,7 @@ void		free(void *ptr)
 	}
 }
 
-void		*realloc_bycopy(void *ptr, t_block* b, size_t size)
+void		*realloc_bycopy(void *ptr, t_block *b, size_t size)
 {
 	void		*new_p;
 	t_block		*new_b;
@@ -59,7 +59,7 @@ void		*handle_realloc(void *ptr, size_t size)
 				split_block(b, size);
 		}
 		else
-			return realloc_bycopy(ptr, b, size);
+			return (realloc_bycopy(ptr, b, size));
 	}
 	return (ptr);
 }
@@ -69,7 +69,7 @@ void		*realloc(void *ptr, size_t size)
 	if (!ptr)
 		return (malloc(size));
 	if (get_valid_region(ptr))
-		return handle_realloc(ptr, size);
+		return (handle_realloc(ptr, size));
 	return (NULL);
 }
 

@@ -12,16 +12,16 @@ static size_t	show_region_mem_ex(t_region *r, const char *type)
 	total_bytes = 0;
 	total_regions = 0;
 	cur_region = r;
-	ft_printf(C(YELLOW)"%s"C(NO)" : %p\n", type, cur_region);
+	ft_printf("\033[33m%s\033[0m : %p\n", type, cur_region);
 	while (cur_region)
 	{
 		b = cur_region->block_list;
 		while (b)
 		{
-			b->is_free ? ft_printf(C(GREEN)) : ft_printf(C(RED));
+			b->is_free ? ft_printf("\033[32m") : ft_printf("\033[31m");
 			ft_printf("=%p==============\n", b->data);
 			ft_printf("             %d bytes\n", b->size);
-			ft_printf("=%p==============\n"C(NO), b->data + b->size);
+			ft_printf("=%p==============\n\033[0m", b->data + b->size);
 			total_bytes += (!b->is_free) ? b->size : 0;
 			b = b->next;
 		}
