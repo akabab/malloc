@@ -23,11 +23,6 @@ void		free(void *ptr)
 				free_region(r);
 		}
 	}
-	else
-	{
-		malloc_err("pointer being freed was not allocated", ptr);
-		exit(-1);
-	}
 }
 
 void		*realloc_bycopy(void *ptr, t_block* b, size_t size)
@@ -75,11 +70,6 @@ void		*realloc(void *ptr, size_t size)
 		return (malloc(size));
 	if (get_valid_region(ptr))
 		return handle_realloc(ptr, size);
-	else
-	{
-		malloc_err("pointer being realloc'd was not allocated", ptr);
-		exit(-1);
-	}
 	return (NULL);
 }
 

@@ -8,13 +8,13 @@ void    free_prev(void)
     ptr[0] = malloc(20);
     ptr[1] = malloc(120);
     ptr[2] = malloc(40);
-    show_alloc_mem();
+    show_alloc_mem_ex();
     free(ptr[0]);
-    show_alloc_mem();
+    show_alloc_mem_ex();
     free(ptr[1]);
-    show_alloc_mem();
+    show_alloc_mem_ex();
     free(ptr[2]);
-    show_alloc_mem();
+    show_alloc_mem_ex();
 }
 
 void    free_wrong_addr(void)

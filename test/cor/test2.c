@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "malloc.h"
+
 int main()
 {
   int   i;
@@ -10,10 +10,7 @@ int main()
   {
     addr = (char *)malloc(1024);
     addr[0] = 42;
-    show_alloc_mem();
-
     free(addr);
-    show_alloc_mem();
     i++;
   }
   return (0);

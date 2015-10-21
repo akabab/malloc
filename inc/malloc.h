@@ -84,6 +84,7 @@ void		*realloc(void *ptr, size_t size);
 **		show_alloc.c
 */
 void		show_alloc_mem(void);
+void		show_alloc_mem_ex(void);
 
 /*
 **		ft_perror.c
