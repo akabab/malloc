@@ -17,6 +17,8 @@ SRCS			=	src/ft_perror.c				\
 					src/region_utils_plus.c		\
 					src/block_utils.c			\
 					src/show_alloc.c			\
+					src/realloc.c				\
+					src/free.c					\
 					src/malloc.c
 
 OBJS			=	$(SRCS:src/%.c=obj/%.o)
@@ -35,7 +37,7 @@ OK				=	$(C_OK)OK$(C_NO)
 all: obj $(NAME) cleanln $(LN_NAME)
 
 $(NAME): $(OBJS)
-	@$(CC) -shared -o $@ $^
+	@$(CC) -shared -lpthread -o $@ $^
 	@echo "Compiling" [ $(NAME) ] $(SUCCESS)
 
 $(LN_NAME):

@@ -1,6 +1,7 @@
 #include "malloc.h"
 
-extern t_region		*g_heap[3];
+extern t_region				*g_heap[3];
+extern pthread_mutex_t		g_mutex;
 
 static size_t	show_region_mem_ex(t_region *r, const char *type)
 {
@@ -64,6 +65,7 @@ void			show_alloc_mem_ex(void)
 	char	*type;
 	size_t	total_bytes;
 
+	pthread_mutex_lock(&g_mutex);
 	total_bytes = 0;
 	i = 0;
 	ft_printf("\n_/ HEAP \\_________\n");
@@ -79,6 +81,7 @@ void			show_alloc_mem_ex(void)
 		i++;
 	}
 	ft_printf("Total : %d bytes\n", total_bytes);
+	pthread_mutex_unlock(&g_mutex);
 }
 
 void			show_alloc_mem(void)
@@ -87,6 +90,7 @@ void			show_alloc_mem(void)
 	char	*type;
 	size_t	total_bytes;
 
+	pthread_mutex_lock(&g_mutex);
 	total_bytes = 0;
 	i = 0;
 	while (i < 3)
@@ -101,4 +105,5 @@ void			show_alloc_mem(void)
 		i++;
 	}
 	ft_printf("Total : %d octets\n", total_bytes);
+	pthread_mutex_unlock(&g_mutex);
 }

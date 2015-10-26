@@ -5,6 +5,7 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <pthread.h>
 
 # define PAGE_SIZE				(getpagesize())
 
@@ -72,8 +73,18 @@ struct						s_region
 /*
 **		malloc.c
 */
-void						free(void *ptr);
+void						*malloc_exec(size_t size);
 void						*malloc(size_t size);
+
+/*
+**		free.c
+*/
+void						free_exec(void *ptr);
+void						free(void *ptr);
+
+/*
+**		realloc.c
+*/
 void						*realloc(void *ptr, size_t size);
 
 /*
